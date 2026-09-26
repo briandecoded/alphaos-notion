@@ -1,6 +1,6 @@
 {
   "name": "bb-plugin-notion",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Notion pages and databases rendered natively inside the bb agent IDE: a sidebar viewer, pins, inline cards, @-mentions, and agent tools.",
   "license": "MIT",
   "author": "Brian Decoded (https://briandecoded.com)",

@@ -32,8 +32,15 @@ bb notion pin <id-or-url> [label]
 bb notion unpin <id>
 ```
 
-Reading is native; editing is not. The viewer's "Open in Notion" button hands
-off when you need to write.
+The viewer remains read-only and its "Open in Notion" button hands off for
+editing. One scoped backend RPC, `synthesis_create`, lets the standalone
+[synthesisOS plugin](https://github.com/alphaefficiency-dev/bb-plugin-synthesisos)
+save an explicitly chosen Perplexity answer to Brian's synthesisOS database.
+It validates the live data-source schema, checks the quick-search ID for an
+existing row, writes the complete answer and linked sources, then reads the
+page back before reporting success. A matching `synthesis_archive` method can
+archive a quick-search page only when its marker and database parent match.
+These methods do not expose a general Notion editor or change the read-only viewer.
 
 ## Install
 

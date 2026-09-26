@@ -18,6 +18,7 @@ import {
   type NotionSummary,
 } from "./notion/api";
 import { clampMarkdown } from "./notion/markdown";
+import { archiveSynthesisResearch, createSynthesisResearch } from "./notion/synthesis";
 
 // ---------- wire schemas ----------
 
@@ -79,6 +80,18 @@ export type DatabaseDetail = z.infer<typeof databaseSchema>;
 export type Cell = z.infer<typeof cellSchema>;
 
 export const rpcContract = defineRpcContract({
+  synthesis_create: {
+    input: z.object({
+      quickSearchId: z.string().uuid(), question: z.string().min(1).max(500), answer: z.string().min(1).max(200_000),
+      sources: z.array(z.object({ url: z.string().url(), title: z.string() })).max(100), mode: z.string().max(40),
+      model: z.string().nullable(), backendUuid: z.string().nullable(),
+    }).strict(),
+    output: z.object({ id: z.string(), url: z.string(), existing: z.boolean() }),
+  },
+  synthesis_archive: {
+    input: z.object({ id: z.string().uuid(), quickSearchId: z.string().uuid() }).strict(),
+    output: z.object({ archived: z.literal(true) }),
+  },
   status: {
     input: z.null(),
     output: z.object({
@@ -338,6 +351,12 @@ export default async function plugin(bb: BbPluginApi) {
 
   // ---------- RPC ----------
   bb.rpc.register(rpcContract, {
+    async synthesis_create(input) {
+      return createSynthesisResearch(await requireClient(), input);
+    },
+    async synthesis_archive({ id, quickSearchId }) {
+      return archiveSynthesisResearch(await requireClient(), id, quickSearchId);
+    },
     async status() {
       const notion = await getClient();
       if (!notion) return { configured: false, workspace: null, error: null };
