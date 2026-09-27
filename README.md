@@ -40,7 +40,7 @@ It validates the live data-source schema, checks the quick-search ID for an
 existing row, writes the complete answer and linked sources, then reads the
 page back before reporting success. A matching `synthesis_archive` method can
 archive a quick-search page only when its marker and database parent match.
-These methods do not expose a general Notion editor or change the read-only viewer.
+The additional `synthesis_create_conversation` method saves every completed exchange in a research thread, including linked sources. It uses a stable snapshot marker, verifies the whole page after creation, and resumes an interrupted append only when existing blocks match exactly. A narrow archive method supports undo and cleanup for the matching snapshot. These methods do not expose a general Notion editor or change the read-only viewer.
 
 ## Install
 

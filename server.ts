@@ -19,6 +19,7 @@ import {
 } from "./notion/api";
 import { clampMarkdown } from "./notion/markdown";
 import { archiveSynthesisResearch, createSynthesisResearch } from "./notion/synthesis";
+import { archiveSynthesisConversation, createSynthesisConversation } from "./notion/synthesis-conversation";
 
 // ---------- wire schemas ----------
 
@@ -87,6 +88,14 @@ export const rpcContract = defineRpcContract({
       model: z.string().nullable(), backendUuid: z.string().nullable(),
     }).strict(),
     output: z.object({ id: z.string(), url: z.string(), existing: z.boolean() }),
+  },
+  synthesis_create_conversation: {
+    input: z.object({ snapshotId: z.string().uuid(), threadId: z.string().min(1).max(100), title: z.string().min(1).max(500), exchanges: z.array(z.object({ question: z.string().min(1).max(2000), answer: z.string().min(1).max(200_000), sources: z.array(z.object({ url: z.string().url(), title: z.string() })).max(100) })).min(1).max(200) }).strict(),
+    output: z.object({ id: z.string(), url: z.string(), existing: z.boolean() }),
+  },
+  synthesis_archive_conversation: {
+    input: z.object({ id: z.string().uuid(), snapshotId: z.string().uuid() }).strict(),
+    output: z.object({ archived: z.literal(true) }),
   },
   synthesis_archive: {
     input: z.object({ id: z.string().uuid(), quickSearchId: z.string().uuid() }).strict(),
@@ -353,6 +362,12 @@ export default async function plugin(bb: BbPluginApi) {
   bb.rpc.register(rpcContract, {
     async synthesis_create(input) {
       return createSynthesisResearch(await requireClient(), input);
+    },
+    async synthesis_create_conversation(input) {
+      return createSynthesisConversation(await requireClient(), input);
+    },
+    async synthesis_archive_conversation({ id, snapshotId }) {
+      return archiveSynthesisConversation(await requireClient(), id, snapshotId);
     },
     async synthesis_archive({ id, quickSearchId }) {
       return archiveSynthesisResearch(await requireClient(), id, quickSearchId);
