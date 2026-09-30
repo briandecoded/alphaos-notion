@@ -16,9 +16,12 @@ Free and open source (MIT). Landing page:
   and forward.
 - **Databases as tables.** Title first, then the columns that have data. Click a
   row to open it.
+- **A "Notion" tab beside the chat.** In a thread's right-panel Actions list
+  (next to Start side chat / Start terminal): browse pins and search on the
+  right while the conversation stays on the left.
 - **Inline cards.** Agents write `::notion{id="…" title="…"}` in a reply and bb
-  renders a card that opens the page in the viewer. The bundled skill teaches
-  agents to do this.
+  renders a card that opens the page in that right-panel tab, so the thread
+  never leaves the screen. The bundled skill teaches agents to do this.
 - **@-mentions.** Type `@` in the composer, pick a Notion page, and its content
   is attached as context when you send. An empty `@` lists your pins.
 - **Agent tools.** `notion_search` and `notion_read`, plus a CLI:

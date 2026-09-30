@@ -8,17 +8,59 @@ const pins = [
   { id: "66666666-7777-4888-9999-aaaaaaaaaaaa", label: "Habits", kind: "database", icon: { kind: "emoji", value: "✅" }, title: "Habits", url: "https://www.notion.so/b" },
 ];
 
+const page = {
+  id: "11111111-2222-4333-8444-555555555555",
+  kind: "page",
+  title: "Roadmap",
+  icon: null,
+  url: "https://www.notion.so/11111111222243338444555555555555",
+  parentTitle: null,
+  lastEditedAt: null,
+};
+
 describe("notion plugin app", () => {
-  it("registers the sidebar page, viewer tab, and card — and nothing in the thread panel", async () => {
+  it("registers the sidebar page, viewer tab, thread panel tab, and card", async () => {
     const app = await loadPluginApp(() => import("./app"));
     expect(app.navPanels.map((panel) => panel.path)).toEqual(["notion"]);
     expect(app.navPanels[0]!.fixedTabs?.map((tab) => tab.id)).toEqual(["viewer"]);
     expect(app.messageDirectives.map((directive) => directive.id)).toEqual(["notion"]);
-    // Notion is reference material, not a writing surface: it is deliberately
-    // absent from the Cmd+J launcher and from the palette that opened it there.
-    expect(app.threadPanelActions).toEqual([]);
-    expect(app.newThreadPanelActions).toEqual([]);
+    // The card asks openThreadPanel for this exact action id; without the
+    // registration every card falls back to the full-page sidebar view.
+    expect(app.threadPanelActions.map((action) => action.id)).toEqual(["page"]);
+    expect(app.newThreadPanelActions.map((action) => action.id)).toEqual(["page"]);
     expect(app.commandPaletteActions).toEqual([]);
+  });
+
+  it("opens a card in the thread side panel, not the full-page view", async () => {
+    const app = await loadPluginApp(() => import("./app"));
+    const slot = renderSlot(
+      app.messageDirectives[0]!,
+      { attributes: { id: page.id, title: "Roadmap" } },
+      {
+        rpc: { resolve: () => page },
+        openThreadPanel: () => true,
+      },
+    );
+    fireEvent.click(await slot.findByRole("button", { name: /open roadmap/i }));
+    expect(slot.inspection.navigateCalls).toEqual([
+      { method: "openThreadPanel", options: { actionId: "page", title: "Roadmap", params: { id: page.id, title: "Roadmap" } } },
+    ]);
+    slot.lifecycle.unmount();
+  });
+
+  it("falls back to the sidebar page only when the host has no side panel", async () => {
+    const app = await loadPluginApp(() => import("./app"));
+    const slot = renderSlot(
+      app.messageDirectives[0]!,
+      { attributes: { id: page.id, title: "Roadmap" } },
+      {
+        rpc: { resolve: () => page },
+        openThreadPanel: () => false,
+      },
+    );
+    fireEvent.click(await slot.findByRole("button", { name: /open roadmap/i }));
+    expect(slot.inspection.navigateCalls.map((call) => call.method)).toEqual(["openThreadPanel", "toPluginPanel"]);
+    slot.lifecycle.unmount();
   });
 
   it("lists pinned pages and opens the viewer tab when one is chosen", async () => {

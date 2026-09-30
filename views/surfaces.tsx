@@ -110,7 +110,9 @@ export function NotionCard({ attributes }: PluginMessageDirectiveProps) {
   const rpc = useNotionRpc();
   const navigate = useBbNavigate();
   const rawId = attributes.id ?? attributes.url ?? "";
-  const id = notionIdFromHref(rawId) ?? notionIdFromHref(`https://www.notion.so/${rawId}`);
+  // A bare id may be dashed (the form `bb notion status` prints); the URL
+  // matcher wants the 32-hex run, so undash before handing it a synthetic URL.
+  const id = notionIdFromHref(rawId) ?? notionIdFromHref(`https://www.notion.so/${rawId.replace(/-/g, "")}`);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
